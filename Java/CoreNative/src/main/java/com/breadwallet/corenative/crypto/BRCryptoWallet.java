@@ -118,6 +118,12 @@ public class BRCryptoWallet extends PointerType implements CoreBRCryptoWallet {
     }
 
     @Override
+    public Optional<CoreBRCryptoTransfer> createTransferForPaymentProtocolRequest(BRCryptoPaymentProtocolRequest request, CoreBRCryptoFeeBasis estimatedFeeBasis) {
+        return Optional.fromNullable(CryptoLibrary.INSTANCE.cryptoWalletCreateTransferForPaymentProtocolRequest(this,
+                request, estimatedFeeBasis.asBRCryptoFeeBasis())).transform(OwnedBRCryptoTransfer::new);
+    }
+
+    @Override
     public void estimateFeeBasis(Pointer cookie,
                                  CoreBRCryptoAddress target, CoreBRCryptoAmount amount, CoreBRCryptoNetworkFee fee) {
         CryptoLibrary.INSTANCE.cryptoWalletEstimateFeeBasis(
@@ -135,6 +141,16 @@ public class BRCryptoWallet extends PointerType implements CoreBRCryptoWallet {
                 this,
                 cookie,
                 sweeper,
+                fee.asBRCryptoNetworkFee());
+    }
+
+    @Override
+    public void estimateFeeBasisForPaymentProtocolRequest(Pointer cookie, BRCryptoPaymentProtocolRequest request,
+                                                          CoreBRCryptoNetworkFee fee) {
+        CryptoLibrary.INSTANCE.cryptoWalletEstimateFeeBasisForPaymentProtocolRequest(
+                this,
+                cookie,
+                request,
                 fee.asBRCryptoNetworkFee());
     }
 

@@ -7,6 +7,7 @@
  */
 package com.breadwallet.corecrypto;
 
+import com.breadwallet.corenative.crypto.BRCryptoPaymentProtocolRequest;
 import com.breadwallet.corenative.crypto.BRCryptoWalletSweeper;
 import com.breadwallet.corenative.crypto.CoreBRCryptoAddress;
 import com.breadwallet.corenative.crypto.CoreBRCryptoAmount;
@@ -75,6 +76,12 @@ final class Wallet implements com.breadwallet.crypto.Wallet {
         return core.createTransferForWalletSweep(sweeper, coreFeeBasis).transform(t -> Transfer.create(t, this));
     }
 
+    public Optional<Transfer> createTransfer(BRCryptoPaymentProtocolRequest request,
+                                             com.breadwallet.crypto.TransferFeeBasis estimatedFeeBasis) {
+        CoreBRCryptoFeeBasis coreFeeBasis = TransferFeeBasis.from(estimatedFeeBasis).getCoreBRFeeBasis();
+        return core.createTransferForPaymentProtocolRequest(request, coreFeeBasis).transform(t -> Transfer.create(t, this));
+    }
+
     @Override
     public void estimateFee(com.breadwallet.crypto.Address target, com.breadwallet.crypto.Amount amount,
                             com.breadwallet.crypto.NetworkFee fee, CompletionHandler<com.breadwallet.crypto.TransferFeeBasis, FeeEstimationError> handler) {
@@ -89,6 +96,13 @@ final class Wallet implements com.breadwallet.crypto.Wallet {
                      com.breadwallet.crypto.NetworkFee fee, CompletionHandler<com.breadwallet.crypto.TransferFeeBasis, FeeEstimationError> handler) {
         CoreBRCryptoNetworkFee coreFee = NetworkFee.from(fee).getCoreBRCryptoNetworkFee();
         core.estimateFeeBasisForWalletSweep(callbackCoordinator.registerFeeBasisEstimateHandler(handler), sweeper, coreFee);
+    }
+
+    /* package */
+    void estimateFee(BRCryptoPaymentProtocolRequest request,
+                     com.breadwallet.crypto.NetworkFee fee, CompletionHandler<com.breadwallet.crypto.TransferFeeBasis, FeeEstimationError> handler) {
+        CoreBRCryptoNetworkFee coreFee = NetworkFee.from(fee).getCoreBRCryptoNetworkFee();
+        core.estimateFeeBasisForPaymentProtocolRequest(callbackCoordinator.registerFeeBasisEstimateHandler(handler), request, coreFee);
     }
 
     @Override

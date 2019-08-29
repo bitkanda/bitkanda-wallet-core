@@ -19,6 +19,10 @@ import com.breadwallet.corenative.crypto.BRCryptoHash;
 import com.breadwallet.corenative.crypto.BRCryptoKey;
 import com.breadwallet.corenative.crypto.BRCryptoNetwork;
 import com.breadwallet.corenative.crypto.BRCryptoNetworkFee;
+import com.breadwallet.corenative.crypto.BRCryptoPayProtReqBitPayAndBip70Callbacks;
+import com.breadwallet.corenative.crypto.BRCryptoPaymentProtocolPayment;
+import com.breadwallet.corenative.crypto.BRCryptoPaymentProtocolPaymentAck;
+import com.breadwallet.corenative.crypto.BRCryptoPaymentProtocolRequest;
 import com.breadwallet.corenative.crypto.BRCryptoTransfer;
 import com.breadwallet.corenative.crypto.BRCryptoTransferState;
 import com.breadwallet.corenative.crypto.BRCryptoUnit;
@@ -148,6 +152,30 @@ public interface CryptoLibrary extends Library {
     int cryptoNetworkFeeEqual(BRCryptoNetworkFee nf1, BRCryptoNetworkFee nf2);
     void cryptoNetworkFeeGive(BRCryptoNetworkFee obj);
 
+    // crypto/BRCryptoPayment.h
+    BRCryptoPaymentProtocolRequest.OwnedBRCryptoPaymentProtocolRequest cryptoPaymentProtocolRequestCreateForBip70(BRCryptoNetwork cryptoNetwork,
+                                                                                                                  BRCryptoCurrency cryptoCurrency,
+                                                                                                                  BRCryptoPayProtReqBitPayAndBip70Callbacks.ByValue callbacks,
+                                                                                                                  byte[] serialization,
+                                                                                                                  SizeT serializationLen);
+    int cryptoPaymentProtocolRequestIsSecure(BRCryptoPaymentProtocolRequest request);
+    Pointer cryptoPaymentProtocolRequestGetMemo(BRCryptoPaymentProtocolRequest request);
+    Pointer cryptoPaymentProtocolRequestGetPaymentURL(BRCryptoPaymentProtocolRequest request);
+    BRCryptoAmount cryptoPaymentProtocolRequestGetTotalAmount(BRCryptoPaymentProtocolRequest request);
+    BRCryptoNetworkFee cryptoPaymentProtocolRequestGetRequiredNetworkFee (BRCryptoPaymentProtocolRequest request);
+    BRCryptoAddress cryptoPaymentProtocolRequestGetPrimaryTargetAddress(BRCryptoPaymentProtocolRequest request);
+    Pointer cryptoPaymentProtocolRequestGetCommonName(BRCryptoPaymentProtocolRequest request);
+    int cryptoPaymentProtocolRequestIsValid(BRCryptoPaymentProtocolRequest request);
+    void cryptoPaymentProtocolRequestGive(BRCryptoPaymentProtocolRequest request);
+
+    BRCryptoPaymentProtocolPayment.OwnedBRCryptoPaymentProtocolPayment cryptoPaymentProtocolPaymentCreate(BRCryptoPaymentProtocolRequest request, BRCryptoTransfer transfer, BRCryptoAddress refundAddress);
+    Pointer cryptoPaymentProtocolPaymentEncode(BRCryptoPaymentProtocolPayment payment, SizeTByReference encodedLength);
+    void cryptoPaymentProtocolPaymentGive(BRCryptoPaymentProtocolPayment payment);
+
+    BRCryptoPaymentProtocolPaymentAck.OwnedBRCryptoPaymentProtocolPaymentAck cryptoPaymentProtocolPaymentACKCreateForBip70(byte[] serialization, SizeT serializationLen);
+    Pointer cryptoPaymentProtocolPaymentACKGetMemo(BRCryptoPaymentProtocolPaymentAck ack);
+    void cryptoPaymentProtocolPaymentACKGive(BRCryptoPaymentProtocolPaymentAck ack);
+
     // crypto/BRCryptoPrivate.h
     BRCryptoCurrency cryptoCurrencyCreate(String uids, String name, String code, String type, String issuer);
     void cryptoNetworkSetHeight(BRCryptoNetwork network, long height);
@@ -202,8 +230,10 @@ public interface CryptoLibrary extends Library {
     void cryptoWalletSetDefaultFeeBasis(BRCryptoWallet wallet, BRCryptoFeeBasis feeBasis);
     BRCryptoTransfer cryptoWalletCreateTransfer(BRCryptoWallet wallet, BRCryptoAddress target, BRCryptoAmount amount, BRCryptoFeeBasis feeBasis);
     BRCryptoTransfer cryptoWalletCreateTransferForWalletSweep(BRCryptoWallet wallet, BRCryptoWalletSweeper sweeper, BRCryptoFeeBasis feeBasis);
+    BRCryptoTransfer cryptoWalletCreateTransferForPaymentProtocolRequest(BRCryptoWallet wallet, BRCryptoPaymentProtocolRequest request, BRCryptoFeeBasis feeBasis);
     void cryptoWalletEstimateFeeBasis(BRCryptoWallet wallet, Pointer cookie, BRCryptoAddress target, BRCryptoAmount amount, BRCryptoNetworkFee fee);
     void cryptoWalletEstimateFeeBasisForWalletSweep(BRCryptoWallet wallet, Pointer cookie, BRCryptoWalletSweeper sweeper, BRCryptoNetworkFee fee);
+    void cryptoWalletEstimateFeeBasisForPaymentProtocolRequest(BRCryptoWallet wallet, Pointer cookie, BRCryptoPaymentProtocolRequest request, BRCryptoNetworkFee fee);
     int cryptoWalletEqual(BRCryptoWallet w1, BRCryptoWallet w2);
     BRCryptoWallet cryptoWalletTake(BRCryptoWallet obj);
     void cryptoWalletGive(BRCryptoWallet obj);
@@ -229,6 +259,7 @@ public interface CryptoLibrary extends Library {
     void cryptoWalletManagerConnect(BRCryptoWalletManager cwm);
     void cryptoWalletManagerDisconnect(BRCryptoWalletManager cwm);
     void cryptoWalletManagerSync(BRCryptoWalletManager cwm);
+    int cryptoWalletManagerSign(BRCryptoWalletManager cwm, BRCryptoWallet wid, BRCryptoTransfer tid, ByteBuffer paperKey);
     void cryptoWalletManagerSubmit(BRCryptoWalletManager cwm, BRCryptoWallet wid, BRCryptoTransfer tid, ByteBuffer paperKey);
     void cryptoWalletManagerSubmitForKey(BRCryptoWalletManager cwm, BRCryptoWallet wid, BRCryptoTransfer tid, BRCryptoKey key);
     void cwmAnnounceGetBlockNumberSuccessAsInteger(BRCryptoWalletManager cwm, BRCryptoCWMClientCallbackState callbackState,long blockNumber);

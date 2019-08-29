@@ -54,9 +54,13 @@ public interface CoreBRCryptoWalletManager {
 
     void sync();
 
+    boolean sign(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, byte[] phraseUtf8);
+
     void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, byte[] phraseUtf8);
 
     void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, BRCryptoKey key);
+
+    void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer);
 
     void announceGetBlockNumberSuccess(BRCryptoCWMClientCallbackState callbackState, UnsignedLong blockchainHeight);
 

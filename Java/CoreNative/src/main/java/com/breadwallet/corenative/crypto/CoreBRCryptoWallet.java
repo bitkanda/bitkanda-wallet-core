@@ -46,9 +46,13 @@ public interface CoreBRCryptoWallet {
 
     Optional<CoreBRCryptoTransfer> createTransferForWalletSweep(BRCryptoWalletSweeper sweeper, CoreBRCryptoFeeBasis estimatedFeeBasis);
 
+    Optional<CoreBRCryptoTransfer> createTransferForPaymentProtocolRequest(BRCryptoPaymentProtocolRequest request, CoreBRCryptoFeeBasis estimatedFeeBasis);
+
     void estimateFeeBasis(Pointer cookie, CoreBRCryptoAddress target, CoreBRCryptoAmount amount, CoreBRCryptoNetworkFee fee);
 
     void estimateFeeBasisForWalletSweep(Pointer cookie, BRCryptoWalletSweeper sweeper, CoreBRCryptoNetworkFee fee);
+
+    void estimateFeeBasisForPaymentProtocolRequest(Pointer cookie, BRCryptoPaymentProtocolRequest request, CoreBRCryptoNetworkFee fee);
 
     BRCryptoWallet asBRCryptoWallet();
 }

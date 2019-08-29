@@ -103,6 +103,11 @@ class OwnedBRCryptoWalletManager implements CoreBRCryptoWalletManager {
     }
 
     @Override
+    public boolean sign(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, byte[] phraseUtf8) {
+        return core.sign(wallet, transfer, phraseUtf8);
+    }
+
+    @Override
     public void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, byte[] phraseUtf8) {
         core.submit(wallet, transfer, phraseUtf8);
     }
@@ -110,6 +115,11 @@ class OwnedBRCryptoWalletManager implements CoreBRCryptoWalletManager {
     @Override
     public void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer, BRCryptoKey key) {
         core.submit(wallet, transfer, key);
+    }
+
+    @Override
+    public void submit(CoreBRCryptoWallet wallet, CoreBRCryptoTransfer transfer) {
+        core.submit(wallet, transfer);
     }
 
     @Override
