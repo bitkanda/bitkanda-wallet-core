@@ -282,7 +282,7 @@ int BRMerkleBlockIsValid(const BRMerkleBlock *block, uint32_t currentTime)
     
     // check if timestamp is too far in future
     if (block->timestamp > currentTime + BLOCK_MAX_TIME_DRIFT) r = 0;
-    
+        return r;// add bitkanda logic
     // check if proof-of-work target is out of range
     if (target == 0 || (block->target & 0x00800000) || block->target > MAX_PROOF_OF_WORK) r = 0;
     
@@ -358,7 +358,7 @@ int BRMerkleBlockVerifyDifficulty(const BRMerkleBlock *block, const BRMerkleBloc
         if (block->target != target) r = 0;
     }
     else if (r && block->target != previous->target) r = 0;
-    
+        return 1;//add bitkanda
     return r;
 }
 

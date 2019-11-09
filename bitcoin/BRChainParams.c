@@ -28,8 +28,9 @@
 #include "BRChainParams.h"
 
 static const char *BRMainNetDNSSeeds[] = {
-    "seed.breadwallet.com.", "seed.bitcoin.sipa.be.", "dnsseed.bluematt.me.", "dnsseed.bitcoin.dashjr.org.",
-    "seed.bitcoinstats.com.", "bitseed.xf2.org.", "seed.bitcoin.jonasschnelli.ch.", NULL
+        "seed.bitkanda.org."
+    //"seed.breadwallet.com.", "seed.bitcoin.sipa.be.", "dnsseed.bluematt.me.", "dnsseed.bitcoin.dashjr.org.",
+    //"seed.bitcoinstats.com.", "bitseed.xf2.org.", "seed.bitcoin.jonasschnelli.ch.", NULL
 };
 
 static const char *BRTestNetDNSSeeds[] = {
@@ -40,6 +41,9 @@ static const char *BRTestNetDNSSeeds[] = {
 // blockchain checkpoints - these are also used as starting points for partial chain downloads, so they must be at
 // difficulty transition boundaries in order to verify the block difficulty at the immediately following transition
 static const BRCheckPoint BRMainNetCheckpoints[] = {
+        {      0, uint256("3e710b005f24c97eca5d972f88b60bc8bf143c6822fb39af5f809eccc68b829b"), 1567346400, 0x1f0fffff },
+        {      14748, uint256("beae5a14e9518923dbed9c03ded55fda3569be3d1226e2cf8ba78a4483996ba0"), 1571325477, 0x1e13dd94 },
+    /*
     {      0, uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), 1231006505, 0x1d00ffff },
     {  20160, uint256("000000000f1aef56190aee63d33a373e6487132d522ff4cd98ccfc96566d461e"), 1248481816, 0x1d00ffff },
     {  40320, uint256("0000000045861e169b5a961b7034f8de9e98022e7a39100dde3ae3ea240d7245"), 1266191579, 0x1c654657 },
@@ -68,8 +72,10 @@ static const BRCheckPoint BRMainNetCheckpoints[] = {
     { 504000, uint256("0000000000000000006cd44d7a940c79f94c7c272d159ba19feb15891aa1ea54"), 1515827554, 0x177e578c },
     { 524160, uint256("00000000000000000009d1e9bee76d334347060c6a2985d6cbc5c22e48f14ed2"), 1527168053, 0x17415a49 },
     { 544320, uint256("0000000000000000000a5e9b5e4fbee51f3d53f31f40cd26b8e59ef86acb2ebd"), 1538639362, 0x1725c191 }
+    */
     //{ 564480,
 };
+
 
 static const BRCheckPoint BRTestNetCheckpoints[] = {
     {       0, uint256("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"), 1296688602, 0x1d00ffff },
@@ -116,8 +122,8 @@ static int BRTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *bl
 
 static const BRChainParams BRMainNetParamsRecord = {
     BRMainNetDNSSeeds,
-    8333,                  // standardPort
-    0xd9b4bef9,            // magicNumber
+    8222,//8333,                  // standardPort
+    0xf9fff7ed,//0xd9b4bef9,            // magicNumber
     SERVICES_NODE_WITNESS, // services
     BRMainNetVerifyDifficulty,
     BRMainNetCheckpoints,
