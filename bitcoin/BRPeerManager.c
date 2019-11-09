@@ -782,7 +782,7 @@ static void _peerConnected(void *info)
 
             // request just block headers up to a week before earliestKeyTime, and then merkleblocks after that
             // we do not reset connect failure count yet incase this request times out
-            if (manager->lastBlock->timestamp + 7*24*60*60 >= manager->earliestKeyTime) {
+            if (manager->lastBlock->timestamp + 3.5*24*60*60 >= manager->earliestKeyTime) {
                 BRPeerSendGetblocks(peer, locators, count, UINT256_ZERO);
             }
             else BRPeerSendGetheaders(peer, locators, count, UINT256_ZERO);
@@ -1093,7 +1093,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
         for (uint32_t i = 0; b && i < BLOCK_DIFFICULTY_INTERVAL; i++) {
             b = BRSetGet(manager->blocks, &b->prevBlock);
         }
-
+        /* bitkanda
         if (! b) {
             peer_log(peer, "missing previous difficulty tansition, can't verify block: %s", u256hex(block->blockHash));
             r = 0;
@@ -1108,7 +1108,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
                 BRSetRemove(manager->blocks, b);
                 BRMerkleBlockFree(b);
             }
-        }
+        }*/
     }
 
     // verify block difficulty
@@ -1179,7 +1179,8 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
     }
 
     // ignore block headers that are newer than one week before earliestKeyTime (it's a header if it has 0 totalTx)
-    if (block->totalTx == 0 && block->timestamp + 7*24*60*60 - 2*60*60 > manager->earliestKeyTime) {
+
+    if (block->totalTx == 0 && block->timestamp + 3.5*24*60*60 - 2*60*60 > manager->earliestKeyTime) {
         BRMerkleBlockFree(block);
         block = NULL;
     }
@@ -1197,7 +1198,7 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
                  u256hex(block->blockHash), u256hex(block->prevBlock), u256hex(manager->lastBlock->blockHash),
                  manager->lastBlock->height);
         
-        if (block->timestamp + 7*24*60*60 < time(NULL)) { // ignore orphans older than one week ago
+        if (block->timestamp + 3.5*24*60*60 < time(NULL)) { // ignore orphans older than one week ago
             BRMerkleBlockFree(block);
             block = NULL;
         }
@@ -1488,7 +1489,7 @@ BRPeerManager *BRPeerManagerNew(const BRChainParams *params, BRWallet *wallet, u
         block->target = manager->params->checkpoints[i].target;
         BRSetAdd(manager->checkpoints, block);
         BRSetAdd(manager->blocks, block);
-        if (i == 0 || block->timestamp + 7*24*60*60 < manager->earliestKeyTime) manager->lastBlock = block;
+        if (i == 0 || block->timestamp + 3.5*24*60*60 < manager->earliestKeyTime) manager->lastBlock = block;
     }
 
     block = NULL;
@@ -1739,7 +1740,7 @@ void BRPeerManagerRescan(BRPeerManager *manager)
 
         // start the chain download from the most recent checkpoint that's at least a week older than earliestKeyTime
         for (size_t i = manager->params->checkpointsCount; i > 0; i--) {
-            if (i - 1 == 0 || manager->params->checkpoints[i - 1].timestamp + 7*24*60*60 < manager->earliestKeyTime) {
+            if (i - 1 == 0 || manager->params->checkpoints[i - 1].timestamp + 3.5*24*60*60 < manager->earliestKeyTime) {
                 UInt256 hash = UInt256Reverse(manager->params->checkpoints[i - 1].hash);
 
                 newLastBlock = BRSetGet(manager->blocks, &hash);
