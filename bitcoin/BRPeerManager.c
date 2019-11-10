@@ -1101,6 +1101,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
         for (uint32_t i = 0; b && i < BLOCK_DIFFICULTY_INTERVAL; i++) {
             b = BRSetGet(manager->blocks, &b->prevBlock);
         }
+        
         /* bitkanda
         if (! b) {
             peer_log(peer, "missing previous difficulty tansition, can't verify block: %s", u256hex(block->blockHash));
