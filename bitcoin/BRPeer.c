@@ -42,6 +42,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>	
 #include <arpa/inet.h>
+#include "strencodings.h"
 
 #define HEADER_LENGTH      24
 #define MAX_MSG_LENGTH     0x02000000
@@ -502,7 +503,14 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
                     r = 0;
                 }
                 else if (! BRMerkleBlockIsValid(block, (uint32_t)now)) {
+
+                    HashString hashstr;
+//                    uint8_t hash[]={113,6,194,76,38,156,197,179,245,181,15,115,30,62,162,
+//                                    204,124,104,153,95,50,116,99,73,197,243,33,240,89,17,169,236};
+                    HexStr(block->blockHash.u8, sizeof(block->blockHash.u8), 0, hashstr , sizeof(hashstr));
                     peer_log(peer, "invalid block header: %s", u256hex(block->blockHash));
+                    peer_log(peer, "invalid block prevBlock: %s", u256hex(block->prevBlock));
+                    peer_log(peer, "invalid block merkleRoot: %s", u256hex(block->merkleRoot));
                     BRMerkleBlockFree(block);
                     r = 0;
                 }

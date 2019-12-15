@@ -670,7 +670,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         System.out.println("    Wallet:");
 
         final long SATOSHIS = 100000000L;
-        final long MAX_MONEY = 2100000L * SATOSHIS;
+        final long MAX_MONEY = 8400000L * SATOSHIS;
 
         final int SEQUENCE_GAP_LIMIT_EXTERNAL = 10;
         final int SEQUENCE_GAP_LIMIT_INTERNAL = 5;

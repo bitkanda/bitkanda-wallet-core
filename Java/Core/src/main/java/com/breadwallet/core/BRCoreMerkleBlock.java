@@ -78,4 +78,7 @@ public class BRCoreMerkleBlock extends BRCoreJniReference {
 
     // To call BRMerkleBlockFree()
     public native void disposeNative ();
+
+    //bitkanda
+    public native byte[] getBlockPowerHash ();
 }

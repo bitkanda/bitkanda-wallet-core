@@ -1091,7 +1091,8 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
 {
     int r = 1;
 
-    if (! prev || ! UInt256Eq(block->prevBlock, prev->blockHash) || block->height != prev->height + 1) r = 0;
+    if (! prev || ! UInt256Eq(block->prevBlock, prev->blockHash) || block->height != prev->height + 1)
+        r = 0;
 
     // check if we hit a difficulty transition, and find previous transition time
     if (r && (block->height % BLOCK_DIFFICULTY_INTERVAL) == 0) {
@@ -1102,7 +1103,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
             b = BRSetGet(manager->blocks, &b->prevBlock);
         }
 
-        /* bitkanda
+        //bitkanda
         if (! b) {
             peer_log(peer, "missing previous difficulty tansition, can't verify block: %s", u256hex(block->blockHash));
             r = 0;
@@ -1117,7 +1118,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
                 BRSetRemove(manager->blocks, b);
                 BRMerkleBlockFree(b);
             }
-        }*/
+        }
     }
 
     // verify block difficulty

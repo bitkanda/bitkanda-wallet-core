@@ -127,6 +127,11 @@ JNIEXPORT jboolean JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_containsT
 JNIEXPORT void JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_disposeNative
   (JNIEnv *, jobject);
 
+ //get block powerhash
+  JNIEXPORT jbyteArray JNICALL
+Java_com_breadwallet_core_BRCoreMerkleBlock_getBlockPowerHash(JNIEnv *, jobject) ;
+
+
 #ifdef __cplusplus
 }
 #endif

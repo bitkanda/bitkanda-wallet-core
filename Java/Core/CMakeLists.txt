@@ -4,6 +4,14 @@
 # Sets the minimum version of CMake required to build the native library.
 
 cmake_minimum_required(VERSION 3.4.1)
+add_library(crypto STATIC IMPORTED)
+set_target_properties(crypto
+        PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/cpp/lib/${ANDROID_ABI}/libcrypto.a)
+
+add_library(ssl STATIC IMPORTED)
+set_target_properties(ssl
+        PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/cpp/lib/${ANDROID_ABI}/libssl.a)
+
 
 # now build app's shared lib
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -DANDROID_STL=gnustl_static -DANDROID_TOOLCHAIN=clang")
@@ -16,11 +24,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -DANDROID_STL=gnustl_static -DANDRO
 # -Wdeprecated-declarations -Wno-sign-conversion
 
 
+
 add_library( # Sets the name of the library.
              core
 
              # Sets the library as a shared library.
              SHARED)
+
 
 # Core
 target_sources (core
@@ -54,6 +64,12 @@ target_sources (core
                 src/main/cpp/core/support/BRSet.h
 
                 # Bitcoin
+                src/main/cpp/core/bitcoin/strencodings.h
+                src/main/cpp/core/bitcoin/strencodings.c
+                src/main/cpp/core/bitcoin/arith_uint256.h
+                src/main/cpp/core/bitcoin/arith_uint256.c
+                src/main/cpp/core/bitcoin/PowerHash.c
+                src/main/cpp/core/bitcoin/PowerHash.h
                 src/main/cpp/core/bitcoin/BRBIP38Key.c
                 src/main/cpp/core/bitcoin/BRBIP38Key.h
                 src/main/cpp/core/bitcoin/BRBloomFilter.c
@@ -283,6 +299,7 @@ include_directories(src/main/cpp/core/bitcoin)
 include_directories(src/main/cpp/core/bcash)
 include_directories(src/main/cpp/core/ethereum/)
 include_directories(src/main/cpp/core/secp256k1/)
+include_directories(src/main/cpp/include)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -302,7 +319,11 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
+
                        core
+        z
+        ssl
+        crypto
 
                        # Links the target library to the log library
                        # included in the NDK.

@@ -8,7 +8,13 @@
 #include "BRCoreJni.h"
 #include "bitcoin/BRMerkleBlock.h"
 #include "com_breadwallet_core_BRCoreMerkleBlock.h"
-
+#include "openssl/crypto.h"
+//bitkanda
+#include <openssl/sha.h>
+#include "bitcoin/BRMerkleBlock.h"
+#include "support/BRInt.h"
+#include "support/BRCrypto.h"
+#include "strencodings.h"
 /*
  * Class:     com_breadwallet_core_BRCoreMerkleBlock
  * Method:    createJniCoreMerkleBlock
@@ -229,3 +235,38 @@ Java_com_breadwallet_core_BRCoreMerkleBlock_disposeNative
     if (NULL != block) BRMerkleBlockFree(block);
 }
 
+JNIEXPORT jbyteArray JNICALL
+Java_com_breadwallet_core_BRCoreMerkleBlock_getBlockPowerHash(JNIEnv *env, jobject thisObject)
+{
+    //test
+    BRMerkleBlock bb;
+    bb.target=504723286;
+    bb.timestamp=1572496071;
+    unsigned int nwr= CalculateNextWorkRequired(&bb,1572171451);
+
+     const char * array;
+     array =OpenSSL_version(OPENSSL_VERSION);
+//20160
+    BRMerkleBlock *block = (BRMerkleBlock *) getJNIReference(env, thisObject);
+    block->merkleRoot=uint256("f045c772530d6b83bc14101567c8252bfa0ac2e2937d1d38be726cc2c764a3f7");
+    block->prevBlock  =uint256("6bbd4ff740970b0e77e469eefade7357eb49ec86f1ae871f9ff4758758bb1b23");
+    block->target=504723286;
+    block->nonce=1794;
+    block->timestamp=1572171465;
+    block->version=536870915;
+
+    //const char un[]=u256hex(u);
+    //UInt256 hash = block->blockHash;
+    UInt256 powerhash=UINT256_ZERO;
+    BRMerklePowerHash(block,&powerhash);
+
+    HashString hashstr;
+    HexStr(powerhash.u8, sizeof(powerhash.u8), 0, hashstr , sizeof(hashstr));
+//hashstr "a12958de99d1aa68669a5bc09c4b59da361d45bcb6bd59209f8e54b634591405"
+    const char powerhashstr[]=u256hex(powerhash);
+    UInt256 hash=UINT256_ZERO;
+    BRSHA256(&hash,block, sizeof(BRMerkleBlock));
+    jbyteArray hashObject = (*env)->NewByteArray (env, sizeof (UInt256));
+    (*env)->SetByteArrayRegion (env, hashObject, 0, sizeof (UInt256), (const jbyte *) hash.u8);
+    return hashObject;
+}

@@ -30,9 +30,10 @@
 #include <limits.h>
 #include <string.h>
 #include <assert.h>
-
-#define MAX_PROOF_OF_WORK 0x1d00ffff    // highest value for difficulty target (higher values are less difficult)
-#define TARGET_TIMESPAN   (14*24*60*60) // the targeted timespan between difficulty target adjustments
+#include "arith_uint256.h"
+#include "PowerHash.h"
+#define MAX_PROOF_OF_WORK 0x1f0fffff //0x1d00ffff bitkanda   // highest value for difficulty target (higher values are less difficult)
+#define TARGET_TIMESPAN   (int)(3.5*24*60*60) // the targeted timespan between difficulty target adjustments
 
 inline static int _ceil_log2(int x)
 {
@@ -136,6 +137,9 @@ BRMerkleBlock *BRMerkleBlockParse(const uint8_t *buf, size_t bufLen)
         }
         
         BRSHA256_2(&block->blockHash, buf, 80);
+        //add bitkanda power hash
+
+        BRMerklePowerHash(block, &block->hashpower);
     }
     
     return block;
@@ -278,20 +282,27 @@ int BRMerkleBlockIsValid(const BRMerkleBlock *block, uint32_t currentTime)
     int r = 1;
     
     // check if merkle root is correct
-    if (block->totalTx > 0 && ! UInt256Eq(merkleRoot, block->merkleRoot)) r = 0;
+    if (block->totalTx > 0 && ! UInt256Eq(merkleRoot, block->merkleRoot))
+        r = 0;
     
     // check if timestamp is too far in future
-    if (block->timestamp > currentTime + BLOCK_MAX_TIME_DRIFT) r = 0;
-        return r;// add bitkanda logic
+    if (block->timestamp > currentTime + BLOCK_MAX_TIME_DRIFT)
+        r = 0;
+        //return r;// add bitkanda logic
     // check if proof-of-work target is out of range
-    if (target == 0 || (block->target & 0x00800000) || block->target > MAX_PROOF_OF_WORK) r = 0;
+    if (target == 0 || (block->target & 0x00800000) || block->target > MAX_PROOF_OF_WORK)
+        r = 0;
     
-    if (size > 3) UInt32SetLE(&t.u8[size - 3], target);
-    else UInt32SetLE(t.u8, target >> (3 - size)*8);
+    if (size > 3)
+        UInt32SetLE(&t.u8[size - 3], target);
+    else
+        UInt32SetLE(t.u8, target >> (3 - size)*8);
     
     for (int i = sizeof(t) - 1; r && i >= 0; i--) { // check proof-of-work
-        if (block->blockHash.u8[i] < t.u8[i]) break;
-        if (block->blockHash.u8[i] > t.u8[i]) r = 0;
+        if (block->hashpower.u8[i] < t.u8[i])//bitkanda
+            break;
+        if (block->hashpower.u8[i] > t.u8[i])//bitkanda
+            r = 0;
     }
     
     return r;
@@ -325,15 +336,33 @@ int BRMerkleBlockContainsTxHash(const BRMerkleBlock *block, UInt256 txHash)
 // intuitively named MAX_PROOF_OF_WORK... since larger values are less difficult.
 int BRMerkleBlockVerifyDifficulty(const BRMerkleBlock *block, const BRMerkleBlock *previous, uint32_t transitionTime)
 {
+    assert(block != NULL);
+    assert(previous != NULL);
     int size, r = 1;
     uint64_t target;
     int64_t timespan;
+    if (! previous || !UInt256Eq(block->prevBlock, previous->blockHash) || block->height != previous->height + 1)
+        r = 0;
+    if (r && (block->height % BLOCK_DIFFICULTY_INTERVAL) == 0 && transitionTime == 0)
+        r = 0;
+  if( ( block->height % BLOCK_DIFFICULTY_INTERVAL)== 0)
+    {
+        unsigned int bits =
+                // //pindexLast :22175,nFirstBlockTime 20160
+                CalculateNextWorkRequired(previous, transitionTime);
+        if (bits != block->target)
+            return 0;
+        else
+            return 1;
+    }
+  else if (r && block->target != previous->target)
+      r = 0;
+    return  r;
     
-    assert(block != NULL);
-    assert(previous != NULL);
+
     
-    if (! previous || !UInt256Eq(block->prevBlock, previous->blockHash) || block->height != previous->height + 1) r = 0;
-    if (r && (block->height % BLOCK_DIFFICULTY_INTERVAL) == 0 && transitionTime == 0) r = 0;
+
+
         
     if (r && (block->height % BLOCK_DIFFICULTY_INTERVAL) == 0) {
         // target is in "compact" format, where the most significant byte is the size of the value in bytes, next
@@ -354,11 +383,13 @@ int BRMerkleBlockVerifyDifficulty(const BRMerkleBlock *block, const BRMerkleBloc
         while (size < 1 || target > 0x007fffff) target >>= 8, size++; // normalize target for "compact" format
         target |= size << 24;
     
-        if (target > MAX_PROOF_OF_WORK) target = MAX_PROOF_OF_WORK; // limit to MAX_PROOF_OF_WORK
-        if (block->target != target) r = 0;
+        if (target > MAX_PROOF_OF_WORK)target = MAX_PROOF_OF_WORK; // limit to MAX_PROOF_OF_WORK
+        if (block->target != target)
+            r = 0;
     }
-    else if (r && block->target != previous->target) r = 0;
-        return 1;//add bitkanda
+    else if (r && block->target != previous->target)
+        r = 0;
+        //return 1;//add bitkanda
     return r;
 }
 
@@ -370,4 +401,56 @@ void BRMerkleBlockFree(BRMerkleBlock *block)
     if (block->hashes) free(block->hashes);
     if (block->flags) free(block->flags);
     free(block);
+}
+
+//get block powerhash
+void BRMerklePowerHash(const BRMerkleBlock *block,UInt256*out)
+{
+        assert(out);
+    BlockHeader blockHeader;
+    blockHeader.nVersion=block->version;
+    blockHeader.nTime=block->timestamp;
+    blockHeader.nNonce=block->nonce;
+    blockHeader.nBits=block->target;
+    memcpy(blockHeader.hashPrevBlock,&block->prevBlock.u8,sizeof(blockHeader.hashPrevBlock));
+    memcpy(blockHeader.hashMerkleRoot,&block->merkleRoot.u8,sizeof(blockHeader.hashPrevBlock));
+    uint8_t blockhashScrypt[32];
+    scrypt_1024_1_1_256(BEGIN(blockHeader.nVersion), BEGIN(blockhashScrypt));
+    //hash
+    uint8_t blockhash[32];
+    BRSHA256_2(blockhash, &blockHeader, 80);
+    uint8_t merge[64]={0};
+    memcpy(merge,blockhashScrypt,sizeof(blockhashScrypt));
+    uint8_t* p=merge+32;
+    memcpy(p,blockhash,sizeof(blockhash));
+    BRSHA256_2(&out->u8, &merge, sizeof(merge));
+
+    return  ;
+}
+
+
+unsigned int CalculateNextWorkRequired(const BRMerkleBlock* pindexLast,int64_t nFirstBlockTime)
+{
+
+// Limit adjustment step
+int64_t nActualTimespan = pindexLast->timestamp - nFirstBlockTime;
+if (nActualTimespan < TARGET_TIMESPAN/4)
+nActualTimespan = TARGET_TIMESPAN/4;
+if (nActualTimespan > TARGET_TIMESPAN*4)
+nActualTimespan = TARGET_TIMESPAN*4;
+const uint8_t powLimit[32]={255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+                            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,15,0};
+// Retarget
+ arith_uint256 bnPowLimit =   UintToArith256(powLimit);
+arith_uint256 bnNew;
+SetCompact(&bnNew,pindexLast->target,0,0);
+    operator_M_Q(&bnNew,nActualTimespan);
+
+    operator_D_Q_int(&bnNew,TARGET_TIMESPAN);
+if (operator_T(&bnNew , &bnPowLimit))
+bnNew = bnPowLimit;
+
+    unsigned int result=0;
+    result= GetCompact(&bnNew,0);
+    return result;
 }

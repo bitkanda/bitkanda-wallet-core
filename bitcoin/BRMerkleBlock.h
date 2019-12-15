@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <inttypes.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,6 +37,16 @@ extern "C" {
 #define BLOCK_DIFFICULTY_INTERVAL 2016 // number of blocks between difficulty target adjustments
 #define BLOCK_UNKNOWN_HEIGHT      INT32_MAX
 #define BLOCK_MAX_TIME_DRIFT      (2*60*60) // the furthest in the future a block is allowed to be timestamped
+typedef  struct
+{
+    uint32_t nVersion;
+    uint8_t hashPrevBlock[32];
+    uint8_t hashMerkleRoot[32];
+    uint32_t nTime;
+    uint32_t nBits;
+    uint32_t nNonce;
+
+} BlockHeader;
 
 typedef struct {
     UInt256 blockHash;
@@ -51,6 +62,7 @@ typedef struct {
     uint8_t *flags;
     size_t flagsLen;
     uint32_t height;
+    UInt256 hashpower;//bitkanda power hash
 } BRMerkleBlock;
 
 #define BR_MERKLE_BLOCK_NONE ((const BRMerkleBlock) { UINT256_ZERO, 0, UINT256_ZERO, UINT256_ZERO, 0, 0, 0, 0, NULL, 0,\
@@ -105,6 +117,12 @@ inline static int BRMerkleBlockEq(const void *block, const void *otherBlock)
 
 // frees memory allocated for block
 void BRMerkleBlockFree(BRMerkleBlock *block);
+
+
+ void BRMerklePowerHash(const BRMerkleBlock *block,UInt256*out);
+
+ //pindexLast :22175,nFirstBlockTime 20160
+unsigned int CalculateNextWorkRequired(const BRMerkleBlock* pindexLast,int64_t nFirstBlockTime);
 
 #ifdef __cplusplus
 }
